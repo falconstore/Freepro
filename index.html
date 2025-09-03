@@ -907,14 +907,36 @@
         document.getElementById('backToLoginBtn').addEventListener('click', () => this.showScreen('login'));
         document.getElementById('renewSubscriptionBtn').addEventListener('click', () => this.showScreen('plans'));
 
-        // Planos
-        document.querySelectorAll('.plan-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const plan = card.dataset.plan;
-            const lastlinkUrl = `https://pay.lastlink.com.br/sua-conta?plan=${plan}`;
-            window.open(lastlinkUrl, '_blank');
-          });
-        });
+  // Planos
+document.querySelectorAll('.plan-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const plan = card.dataset.plan;
+    
+    // URLs corretas do LastLink
+    const planUrls = {
+      monthly: 'https://lastlink.com/p/C84FEE0AA/checkout-payment/',
+      quarterly: 'https://lastlink.com/p/C22278B31/checkout-payment/',
+      biannual: 'https://lastlink.com/p/C1D318901/checkout-payment/',
+      annual: 'https://lastlink.com/p/C479D71C2/checkout-payment/'
+    };
+    
+    const url = planUrls[plan];
+    if (url) {
+      // Adicionar email do usuário se disponível para pré-preenchimento
+      const userEmail = this.currentUser?.email;
+      const finalUrl = userEmail ? `${url}?email=${encodeURIComponent(userEmail)}` : url;
+      window.open(finalUrl, '_blank');
+    } else {
+      console.error('URL não encontrada para o plano:', plan);
+    }
+  });
+});
+
+// Botão de renovação na tela expirada
+document.getElementById('renewSubscriptionBtn').addEventListener('click', () => {
+  // Redirecionar para o plano mais popular (semestral) ou permitir escolha
+  window.open('https://lastlink.com/p/C1D318901/checkout-payment/', '_blank');
+});
 
         // Tema
         this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
