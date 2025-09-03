@@ -2429,30 +2429,99 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
 
          // Procure o event listener de "change" na calculadora ArbiPro e substitua por:
 
-     container.addEventListener("change", (e) => {
-            const el = e.target;
-            if (!el.getAttribute) return;
-            const action = el.getAttribute("data-action");
-            if (!action) return;
-            const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
-            if (idx < 0) return;
-            if (action === "toggleCommission") {
-              const newVal = el.checked ? 0 : null;
-              setHouse(idx, { commission: newVal });
-              const card = document.getElementById(`card-${idx}`);
-              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
-              scheduleUpdate();
-            } else if (action === "toggleFreebet") {
-              setHouse(idx, { freebet: el.checked });
-              scheduleUpdate();
-            } else if (action === "toggleIncrease") {
-              const newVal = el.checked ? 0 : null;
-              setHouse(idx, { increase: newVal });
-              const card = document.getElementById(`card-${idx}`);
-              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
-              scheduleUpdate();
-            }
-          });
+container.addEventListener("change", (e) => {
+  const el = e.target;
+  if (!el.getAttribute) return;
+  const action = el.getAttribute("data-action");
+  if (!action) return;
+  const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
+  if (idx < 0) return;
+  
+  if (action === "toggleCommission") {
+    const newVal = el.checked ? 0 : null;
+    setHouse(idx, { commission: newVal });
+    
+    // Em vez de recriar todo o card, atualiza apenas os elementos necessários
+    const card = document.getElementById(`card-${idx}`);
+    if (card) {
+      // Remove campo de comissão existente se houver
+      const existingCommission = card.querySelector(`#commission-${idx}`)?.closest('.form-group');
+      if (existingCommission) {
+        existingCommission.remove();
+      }
+      
+      // Se habilitado, adiciona o campo de comissão
+      if (el.checked) {
+        const increaseField = card.querySelector(`#increase-${idx}`)?.closest('.form-group');
+        const layField = card.querySelector(`#responsibility-${idx}`)?.closest('.form-group');
+        const fixButton = card.querySelector('[data-action="fixStake"]');
+        const insertBefore = increaseField || layField || fixButton;
+        
+        const commissionHTML = document.createElement('div');
+        commissionHTML.className = 'form-group';
+        commissionHTML.innerHTML = `
+          <label class="form-label" for="commission-${idx}">Comissão (%)</label>
+          <div style="position: relative;">
+            <input id="commission-${idx}" data-action="commissionValue" data-idx="${idx}" 
+              type="text" inputmode="decimal" value=""
+              class="form-input" style="padding-right: 2.25rem;" />
+            <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); 
+              color: var(--text-muted); font-weight: 600;">%</span>
+          </div>
+        `;
+        
+        if (insertBefore) {
+          insertBefore.parentNode.insertBefore(commissionHTML, insertBefore);
+        }
+      }
+    }
+    scheduleUpdate();
+    
+  } else if (action === "toggleFreebet") {
+    setHouse(idx, { freebet: el.checked });
+    scheduleUpdate();
+    
+  } else if (action === "toggleIncrease") {
+    const newVal = el.checked ? 0 : null;
+    setHouse(idx, { increase: newVal });
+    
+    // Em vez de recriar todo o card, atualiza apenas os elementos necessários
+    const card = document.getElementById(`card-${idx}`);
+    if (card) {
+      // Remove campo de aumento existente se houver
+      const existingIncrease = card.querySelector(`#increase-${idx}`)?.closest('.form-group');
+      if (existingIncrease) {
+        existingIncrease.remove();
+      }
+      
+      // Se habilitado, adiciona o campo de aumento
+      if (el.checked) {
+        const commissionField = card.querySelector(`#commission-${idx}`)?.closest('.form-group');
+        const layField = card.querySelector(`#responsibility-${idx}`)?.closest('.form-group');
+        const fixButton = card.querySelector('[data-action="fixStake"]');
+        const insertBefore = layField || fixButton;
+        
+        const increaseHTML = document.createElement('div');
+        increaseHTML.className = 'form-group';
+        increaseHTML.innerHTML = `
+          <label class="form-label" for="increase-${idx}">Aumento de Odd (%)</label>
+          <div style="position: relative;">
+            <input id="increase-${idx}" data-action="increaseValue" data-idx="${idx}" 
+              type="text" inputmode="decimal" value=""
+              class="form-input" style="padding-right: 2.25rem;" />
+            <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); 
+              color: var(--text-muted); font-weight: 600;">%</span>
+          </div>
+        `;
+        
+        if (insertBefore) {
+          insertBefore.parentNode.insertBefore(increaseHTML, insertBefore);
+        }
+      }
+    }
+    scheduleUpdate();
+  }
+});
 
           container.addEventListener("click", (e) => {
             // Primeiro verifica se é diretamente o elemento com data-action
