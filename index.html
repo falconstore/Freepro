@@ -2464,6 +2464,24 @@ container.addEventListener("change", (e) => {
         
         // Insere após os checkboxes
         checkboxes.parentNode.insertBefore(commissionDiv, checkboxes.nextSibling);
+        
+        // ADICIONA EVENT LISTENER AO NOVO INPUT
+        const newInput = commissionDiv.querySelector('input');
+        if (newInput) {
+          newInput.addEventListener('input', function(evt) {
+            const val = parseFlex(evt.target.value);
+            if (Number.isFinite(val)) setHouse(idx, { commission: val });
+            else if (evt.target.value === "") setHouse(idx, { commission: 0 });
+            scheduleUpdate();
+          });
+          
+          // Adiciona formatação no blur
+          newInput.addEventListener('blur', function(evt) {
+            const v = parseFlex(evt.target.value);
+            if (Number.isFinite(v)) evt.target.value = fmtDec(v);
+            scheduleUpdate();
+          });
+        }
       }
     }
     scheduleUpdate();
@@ -2507,6 +2525,24 @@ container.addEventListener("change", (e) => {
           insertAfter.parentNode.insertBefore(increaseDiv, insertAfter.nextSibling);
         } else {
           insertAfter.parentNode.appendChild(increaseDiv);
+        }
+        
+        // ADICIONA EVENT LISTENER AO NOVO INPUT
+        const newInput = increaseDiv.querySelector('input');
+        if (newInput) {
+          newInput.addEventListener('input', function(evt) {
+            const val = parseFlex(evt.target.value);
+            if (Number.isFinite(val)) setHouse(idx, { increase: val });
+            else if (evt.target.value === "") setHouse(idx, { increase: 0 });
+            scheduleUpdate();
+          });
+          
+          // Adiciona formatação no blur
+          newInput.addEventListener('blur', function(evt) {
+            const v = parseFlex(evt.target.value);
+            if (Number.isFinite(v)) evt.target.value = fmtDec(v);
+            scheduleUpdate();
+          });
         }
       }
     }
