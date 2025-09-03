@@ -1996,11 +1996,11 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
         let displayRounding = "0.01";
         let manualOverrides = {};
 
-        let houses = Array.from({ length: MAX_HOUSES }).map((_, index) => ({
+         let houses = Array.from({ length: MAX_HOUSES }).map((_, index) => ({
           odd: "", 
           increase: null, 
           finalOdd: 0, 
-          stake: "", 
+          stake: "0", 
           commission: null, 
           freebet: false, 
           fixedStake: index === 0, 
