@@ -2427,31 +2427,35 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
             scheduleUpdate();
           }, true);
 
-          container.addEventListener("change", (e) => {
-            const el = e.target;
-            if (!el.getAttribute) return;
-            const action = el.getAttribute("data-action");
-            if (!action) return;
-            const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
-            if (idx < 0) return;
+ // Procure o event listener de "change" na calculadora ArbiPro e substitua por:
 
-            if (action === "toggleCommission") {
-              const newVal = el.checked ? 0 : null;
-              setHouse(idx, { commission: newVal });
-              const card = document.getElementById(`card-${idx}`);
-              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
-              scheduleUpdate();
-            } else if (action === "toggleFreebet") {
-              setHouse(idx, { freebet: el.checked });
-              scheduleUpdate();
-            } else if (action === "toggleIncrease") {
-              const newVal = el.checked ? 0 : null;
-              setHouse(idx, { increase: newVal });
-              const card = document.getElementById(`card-${idx}`);
-              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
-              scheduleUpdate();
-            }
-          });
+container.addEventListener("change", (e) => {
+  const el = e.target;
+  if (!el.getAttribute) return;
+  const action = el.getAttribute("data-action");
+  if (!action) return;
+  const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
+  if (idx < 0) return;
+
+  if (action === "toggleCommission") {
+    const newVal = el.checked ? 0 : null;
+    setHouse(idx, { commission: newVal });
+    // Força re-render do card
+    const card = document.getElementById(`card-${idx}`);
+    if (card) card.outerHTML = cardHTML(idx, houses[idx]);
+    scheduleUpdate();
+  } else if (action === "toggleFreebet") {
+    setHouse(idx, { freebet: el.checked });
+    scheduleUpdate();
+  } else if (action === "toggleIncrease") {
+    const newVal = el.checked ? 0 : null;
+    setHouse(idx, { increase: newVal });
+    // Força re-render do card  
+    const card = document.getElementById(`card-${idx}`);
+    if (card) card.outerHTML = cardHTML(idx, houses[idx]);
+    scheduleUpdate();
+  }
+});
 
           container.addEventListener("click", (e) => {
             // Primeiro verifica se é diretamente o elemento com data-action
