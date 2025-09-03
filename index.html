@@ -2427,8 +2427,6 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
             scheduleUpdate();
           }, true);
 
-         // Procure o event listener de "change" na calculadora ArbiPro e substitua por:
-
 container.addEventListener("change", (e) => {
   const el = e.target;
   if (!el.getAttribute) return;
@@ -2441,38 +2439,31 @@ container.addEventListener("change", (e) => {
     const newVal = el.checked ? 0 : null;
     setHouse(idx, { commission: newVal });
     
-    // Em vez de recriar todo o card, atualiza apenas os elementos necessários
     const card = document.getElementById(`card-${idx}`);
     if (card) {
-      // Remove campo de comissão existente se houver
-      const existingCommission = card.querySelector(`#commission-${idx}`)?.closest('.form-group');
-      if (existingCommission) {
-        existingCommission.remove();
-      }
+      // Remove campo existente
+      const existing = card.querySelector(`#commission-${idx}`)?.closest('.form-group');
+      if (existing) existing.remove();
       
-      // Se habilitado, adiciona o campo de comissão
+      // Adiciona novo campo se checkbox marcado
       if (el.checked) {
-        const increaseField = card.querySelector(`#increase-${idx}`)?.closest('.form-group');
-        const layField = card.querySelector(`#responsibility-${idx}`)?.closest('.form-group');
-        const fixButton = card.querySelector('[data-action="fixStake"]');
-        const insertBefore = increaseField || layField || fixButton;
+        const checkboxes = card.querySelector('[data-action="toggleCommission"]').closest('div');
         
-        const commissionHTML = document.createElement('div');
-        commissionHTML.className = 'form-group';
-        commissionHTML.innerHTML = `
+        const commissionDiv = document.createElement('div');
+        commissionDiv.className = 'form-group';
+        commissionDiv.innerHTML = `
           <label class="form-label" for="commission-${idx}">Comissão (%)</label>
           <div style="position: relative;">
             <input id="commission-${idx}" data-action="commissionValue" data-idx="${idx}" 
-              type="text" inputmode="decimal" value=""
+              type="text" inputmode="decimal" value="${houses[idx].commission || ''}"
               class="form-input" style="padding-right: 2.25rem;" />
             <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); 
               color: var(--text-muted); font-weight: 600;">%</span>
           </div>
         `;
         
-        if (insertBefore) {
-          insertBefore.parentNode.insertBefore(commissionHTML, insertBefore);
-        }
+        // Insere após os checkboxes
+        checkboxes.parentNode.insertBefore(commissionDiv, checkboxes.nextSibling);
       }
     }
     scheduleUpdate();
@@ -2485,37 +2476,37 @@ container.addEventListener("change", (e) => {
     const newVal = el.checked ? 0 : null;
     setHouse(idx, { increase: newVal });
     
-    // Em vez de recriar todo o card, atualiza apenas os elementos necessários
     const card = document.getElementById(`card-${idx}`);
     if (card) {
-      // Remove campo de aumento existente se houver
-      const existingIncrease = card.querySelector(`#increase-${idx}`)?.closest('.form-group');
-      if (existingIncrease) {
-        existingIncrease.remove();
-      }
+      // Remove campo existente
+      const existing = card.querySelector(`#increase-${idx}`)?.closest('.form-group');
+      if (existing) existing.remove();
       
-      // Se habilitado, adiciona o campo de aumento
+      // Adiciona novo campo se checkbox marcado
       if (el.checked) {
+        // Encontra onde inserir (após comissão se existir, senão após checkboxes)
         const commissionField = card.querySelector(`#commission-${idx}`)?.closest('.form-group');
-        const layField = card.querySelector(`#responsibility-${idx}`)?.closest('.form-group');
-        const fixButton = card.querySelector('[data-action="fixStake"]');
-        const insertBefore = layField || fixButton;
+        const checkboxes = card.querySelector('[data-action="toggleIncrease"]').closest('div');
+        const insertAfter = commissionField || checkboxes;
         
-        const increaseHTML = document.createElement('div');
-        increaseHTML.className = 'form-group';
-        increaseHTML.innerHTML = `
+        const increaseDiv = document.createElement('div');
+        increaseDiv.className = 'form-group';
+        increaseDiv.innerHTML = `
           <label class="form-label" for="increase-${idx}">Aumento de Odd (%)</label>
           <div style="position: relative;">
             <input id="increase-${idx}" data-action="increaseValue" data-idx="${idx}" 
-              type="text" inputmode="decimal" value=""
+              type="text" inputmode="decimal" value="${houses[idx].increase || ''}"
               class="form-input" style="padding-right: 2.25rem;" />
             <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); 
               color: var(--text-muted); font-weight: 600;">%</span>
           </div>
         `;
         
-        if (insertBefore) {
-          insertBefore.parentNode.insertBefore(increaseHTML, insertBefore);
+        // Insere após o elemento de referência
+        if (insertAfter.nextSibling) {
+          insertAfter.parentNode.insertBefore(increaseDiv, insertAfter.nextSibling);
+        } else {
+          insertAfter.parentNode.appendChild(increaseDiv);
         }
       }
     }
@@ -2542,26 +2533,64 @@ container.addEventListener("change", (e) => {
             e.preventDefault(); // Previne comportamento padrão
             e.stopPropagation(); // Para a propagação do evento
 
-            if (action === "toggleLay") {
-              setHouse(idx, { lay: !houses[idx].lay });
-              const card = document.getElementById(`card-${idx}`);
-              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
-              scheduleUpdate();
-            } else if (action === "fixStake") {
-              // Remove fixação de todas as outras casas e alterna a atual
-              houses = houses.map((h, i) => ({ 
-                ...h, 
-                fixedStake: i === idx ? !h.fixedStake : false 
-              }));
-              
-              // Atualiza a UI de todas as casas para refletir as mudanças
-              document.getElementById("houses").innerHTML = housesInnerHTML();
-              scheduleUpdate();
-            }
-          });
-
-          scheduleUpdate();
-        }
+  if (action === "toggleLay") {
+  setHouse(idx, { lay: !houses[idx].lay });
+  
+  // NÃO recriar o card inteiro! Apenas atualizar elementos necessários
+  const btn = el;
+  const isLay = !houses[idx].lay;
+  
+  // Atualiza o texto e classe do botão
+  btn.textContent = isLay ? 'LAY' : 'BACK';
+  btn.classList.toggle('active', isLay);
+  
+  const card = document.getElementById(`card-${idx}`);
+  if (card) {
+    const existingResp = card.querySelector(`#responsibility-${idx}`)?.closest('.form-group');
+    
+    if (isLay && !existingResp) {
+      // Adiciona campo de responsabilidade
+      const fixButton = card.querySelector('[data-action="fixStake"]');
+      const respDiv = document.createElement('div');
+      respDiv.className = 'form-group';
+      respDiv.innerHTML = `
+        <label class="form-label" for="responsibility-${idx}">Responsabilidade</label>
+        <div style="position: relative;">
+          <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); 
+            color: var(--text-muted); font-weight: 600; font-size: 0.75rem;">R$</span>
+          <input id="responsibility-${idx}" data-action="responsibility" data-idx="${idx}" 
+            type="text" inputmode="decimal" value="${houses[idx].responsibility || ''}"
+            class="form-input" style="padding-left: 2.25rem; font-family: ui-monospace, monospace;" />
+        </div>
+      `;
+      fixButton.parentNode.insertBefore(respDiv, fixButton);
+    } else if (!isLay && existingResp) {
+      // Remove campo de responsabilidade
+      existingResp.remove();
+    }
+  }
+  
+  scheduleUpdate();
+  
+} else if (action === "fixStake") {
+  // Atualiza o estado
+  houses = houses.map((h, i) => ({ 
+    ...h, 
+    fixedStake: i === idx ? !h.fixedStake : false 
+  }));
+  
+  // Atualiza apenas os botões, não recria todo o HTML
+  activeHouses().forEach((house, i) => {
+    const btn = document.querySelector(`[data-action="fixStake"][data-idx="${i}"]`);
+    if (btn) {
+      const isFixed = houses[i].fixedStake;
+      btn.className = isFixed ? 'btn btn-primary' : 'btn btn-secondary';
+      btn.textContent = isFixed ? 'Stake Fixada' : 'Fixar Stake';
+    }
+  });
+  
+  scheduleUpdate();
+}
 
         function setHouse(idx, patch, setOverrideKeys = []) {
           const prev = houses[idx];
