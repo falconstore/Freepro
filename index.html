@@ -2585,23 +2585,24 @@ container.addEventListener("change", (e) => {
     e.stopPropagation();
   }
 
-  if (action === "toggleLay") {
-  setHouse(idx, { lay: !houses[idx].lay });
-  
-  // NÃO recriar o card inteiro! Apenas atualizar elementos necessários
+ if (action === "toggleLay") {
+  // Alterna e usa o novo valor corretamente
+  const newLay = !houses[idx].lay;
+  setHouse(idx, { lay: newLay });
+
   const btn = el;
-  const isLay = houses[idx].lay;
-  
-  // Atualiza o texto e classe do botão
+  const isLay = newLay; // <<< antes estava !houses[idx].lay (invertido)
+
+  // Atualiza botão
   btn.textContent = isLay ? 'LAY' : 'BACK';
   btn.classList.toggle('active', isLay);
-  
+
   const card = document.getElementById(`card-${idx}`);
   if (card) {
     const existingResp = card.querySelector(`#responsibility-${idx}`)?.closest('.form-group');
-    
+
     if (isLay && !existingResp) {
-      // Adiciona campo de responsabilidade
+      // Mostra campo de responsabilidade apenas para LAY
       const fixButton = card.querySelector('[data-action="fixStake"]');
       const respDiv = document.createElement('div');
       respDiv.className = 'form-group';
@@ -2617,12 +2618,14 @@ container.addEventListener("change", (e) => {
       `;
       fixButton.parentNode.insertBefore(respDiv, fixButton);
     } else if (!isLay && existingResp) {
-      // Remove campo de responsabilidade
+      // Remove o campo quando voltar para BACK e limpa valor
       existingResp.remove();
+      houses[idx].responsibility = "";
     }
   }
-  
+
   scheduleUpdate();
+}
   
 } else if (action === "fixStake") {
   // Atualiza o estado
