@@ -2590,7 +2590,7 @@ container.addEventListener("change", (e) => {
   
   // NÃO recriar o card inteiro! Apenas atualizar elementos necessários
   const btn = el;
-  const isLay = !houses[idx].lay;
+  const isLay = houses[idx].lay;
   
   // Atualiza o texto e classe do botão
   btn.textContent = isLay ? 'LAY' : 'BACK';
