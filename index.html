@@ -1997,7 +1997,15 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
         let manualOverrides = {};
 
         let houses = Array.from({ length: MAX_HOUSES }).map((_, index) => ({
-          odd: "", increase: null, finalOdd: 0, stake: "0", commission: null, freebet: false, fixedStake: index === 0, lay: false, responsibility: ""
+          odd: "", 
+          increase: null, 
+          finalOdd: 0, 
+          stake: "", 
+          commission: null, 
+          freebet: false, 
+          fixedStake: index === 0, 
+          lay: false,  // Garantir que todas as houses iniciem como BACK
+          responsibility: ""
         }));
 
         let results = { profits: [], totalStake: 0, roi: 0 };
