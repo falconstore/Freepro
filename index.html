@@ -2429,31 +2429,33 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
 
          // Procure o event listener de "change" na calculadora ArbiPro e substitua por:
 
-container.addEventListener("change", (e) => {
-  const el = e.target;
-  if (!el.getAttribute) return;
-  const action = el.getAttribute("data-action");
-  if (!action) return;
-  const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
-  if (idx < 0) return;
+ container.addEventListener("change", (e) => {
+            const el = e.target;
+            if (!el.getAttribute) return;
+            const action = el.getAttribute("data-action");
+            if (!action) return;
+            const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
+            if (idx < 0) return;
 
-  if (action === "toggleCommission") {
-    const newVal = el.checked ? 0 : null;
-    setHouse(idx, { commission: newVal });
-    // Re-render completo da grid de casas
-    document.getElementById("houses").innerHTML = housesInnerHTML();
-    scheduleUpdate();
-  } else if (action === "toggleFreebet") {
-    setHouse(idx, { freebet: el.checked });
-    scheduleUpdate();
-  } else if (action === "toggleIncrease") {
-    const newVal = el.checked ? 0 : null;
-    setHouse(idx, { increase: newVal });
-    // Re-render completo da grid de casas
-    document.getElementById("houses").innerHTML = housesInnerHTML();
-    scheduleUpdate();
-  }
-});
+            if (action === "toggleCommission") {
+              const newVal = el.checked ? 0 : null;
+              setHouse(idx, { commission: newVal });
+              // Re-render apenas o card específico
+              const card = document.getElementById(`card-${idx}`);
+              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
+              scheduleUpdate();
+            } else if (action === "toggleFreebet") {
+              setHouse(idx, { freebet: el.checked });
+              scheduleUpdate();
+            } else if (action === "toggleIncrease") {
+              const newVal = el.checked ? 0 : null;
+              setHouse(idx, { increase: newVal });
+              // Re-render apenas o card específico
+              const card = document.getElementById(`card-${idx}`);
+              if (card) card.outerHTML = cardHTML(idx, houses[idx]);
+              scheduleUpdate();
+            }
+          });
 
           container.addEventListener("click", (e) => {
             // Primeiro verifica se é diretamente o elemento com data-action
