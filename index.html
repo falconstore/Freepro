@@ -2550,24 +2550,32 @@ container.addEventListener("change", (e) => {
   }
 });
 
-          container.addEventListener("click", (e) => {
-            // Primeiro verifica se é diretamente o elemento com data-action
-            let el = e.target;
-            if (el.getAttribute && el.getAttribute("data-action")) {
-              // É o próprio elemento
-            } else if (el.closest) {
-              // Procura no elemento pai mais próximo
-              el = el.closest("[data-action]");
-            }
-            
-            if (!el || !el.getAttribute) return;
-            
-            const action = el.getAttribute("data-action");
-            const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
-            if (idx < 0) return;
+    container.addEventListener("click", (e) => {
+  // NÃO INTERFERE COM CHECKBOXES - DEIXA ELES FUNCIONAREM
+  if (e.target.type === 'checkbox') {
+    return; // Sai e deixa o checkbox funcionar normal
+  }
+  
+  // Primeiro verifica se é diretamente o elemento com data-action
+  let el = e.target;
+  if (el.getAttribute && el.getAttribute("data-action")) {
+    // É o próprio elemento
+  } else if (el.closest) {
+    // Procura no elemento pai mais próximo
+    el = el.closest("[data-action]");
+  }
+  
+  if (!el || !el.getAttribute) return;
+  
+  const action = el.getAttribute("data-action");
+  const idx = parseInt(el.getAttribute("data-idx") || "-1", 10);
+  if (idx < 0) return;
 
-            e.preventDefault(); // Previne comportamento padrão
-            e.stopPropagation(); // Para a propagação do evento
+  // Só previne comportamento para botões, NÃO para checkboxes
+  if (action === "toggleLay" || action === "fixStake") {
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
   if (action === "toggleLay") {
   setHouse(idx, { lay: !houses[idx].lay });
