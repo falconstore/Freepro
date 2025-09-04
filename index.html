@@ -1121,62 +1121,75 @@ document.getElementById('renewSubscriptionBtn').addEventListener('click', () => 
       },
 
       // Autenticação
-      async loginUser(email, password) {
-        try {
-          this.elements.loginText.classList.add('hidden');
-          this.elements.loginSpinner.classList.remove('hidden');
-          
-          if (password.length < 6) {
-            throw new Error('Senha deve ter pelo menos 6 caracteres');
-          }
+      // SUBSTITUA a função loginUser inteira por esta
+async loginUser(email, password) {
+  try {
+    this.elements.loginText.classList.add('hidden');
+    this.elements.loginSpinner.classList.remove('hidden');
 
-          // Aguarda o Firebase estar pronto
-          let attempts = 0;
-          while (!window.firebaseDb && attempts < 10) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            attempts++;
-          }
+    if (!email) throw new Error('Informe o e-mail');
+    if (!password || password.length < 6) {
+      throw new Error('Senha deve ter pelo menos 6 caracteres');
+    }
 
-          if (!window.firebaseDb) {
-            throw new Error('Sistema não inicializado. Recarregue a página.');
-          }
-          
-          const subscriptionCheck = await this.checkSubscription(email);
-          console.log('Subscription check result:', subscriptionCheck);
-          
-          if (!subscriptionCheck.valid) {
-            if (subscriptionCheck.reason === 'user_not_found') {
-              throw new Error('Usuário não encontrado. Verifique o e-mail ou adquira uma assinatura.');
-            }
-            if (subscriptionCheck.reason === 'expired') {
-              this.currentUser = { email, ...subscriptionCheck.userData };
-              localStorage.setItem('freepro_user', JSON.stringify(this.currentUser));
-              this.showScreen('expired');
-              this.updateUserInfo();
-              return;
-            }
-            if (subscriptionCheck.reason === 'inactive') {
-              throw new Error('Assinatura inativa. Entre em contato com o suporte.');
-            }
-            throw new Error('Erro na verificação da assinatura: ' + subscriptionCheck.reason);
-          }
-          
-          this.currentUser = { email, ...subscriptionCheck.userData };
-          localStorage.setItem('freepro_user', JSON.stringify(this.currentUser));
-          this.showScreen('main');
-          this.updateUserInfo();
-          
-          // Aguarda um pouco antes de inicializar as calculadoras
-          setTimeout(() => this.initCalculators(), 300);
-          
-        } catch (error) {
-          console.error('Erro no login:', error);
-          alert('Erro no login: ' + error.message);
-        } finally {
-          this.elements.loginText.classList.remove('hidden');
-          this.elements.loginSpinner.classList.add('hidden');
-        }
-      },
+    // Garante Firebase pronto
+    let attempts = 0;
+    while (!window.firebaseDb && attempts < 10) {
+      await new Promise(r => setTimeout(r, 300));
+      attempts++;
+    }
+    if (!window.firebaseDb) {
+      throw new Error('Sistema não inicializado. Recarregue a página.');
+    }
+
+    // 1) Busca direta do usuário no Firestore (documento com ID = email)
+    const docRef = window.firebaseDoc(window.firebaseDb, 'users', email);
+    const snap = await window.firebaseGetDoc(docRef);
+
+    if (!snap.exists()) {
+      throw new Error('Usuário não encontrado. Verifique o e-mail ou adquira uma assinatura.');
+    }
+
+    const userData = snap.data();
+
+    // 2) Validação de senha EXATA (campo "password" no Firestore)
+    if (!('password' in userData) || String(userData.password) !== String(password)) {
+      throw new Error('Senha incorreta.');
+    }
+
+    // 3) Depois de validar a senha, verifica status/validade da assinatura
+    const subscriptionCheck = await this.checkSubscription(email);
+    if (!subscriptionCheck.valid) {
+      if (subscriptionCheck.reason === 'expired') {
+        this.currentUser = { email, ...subscriptionCheck.userData };
+        localStorage.setItem('freepro_user', JSON.stringify(this.currentUser));
+        this.showScreen('expired');
+        this.updateUserInfo();
+        return;
+      }
+      if (subscriptionCheck.reason === 'inactive') {
+        throw new Error('Assinatura inativa. Entre em contato com o suporte.');
+      }
+      throw new Error('Erro na verificação da assinatura: ' + subscriptionCheck.reason);
+    }
+
+    // 4) Login OK
+    this.currentUser = { email, ...subscriptionCheck.userData };
+    // NÃO salve a senha no storage
+    localStorage.setItem('freepro_user', JSON.stringify(this.currentUser));
+
+    this.showScreen('main');
+    this.updateUserInfo();
+
+    setTimeout(() => this.initCalculators(), 300);
+  } catch (error) {
+    console.error('Erro no login:', error);
+    alert('Erro no login: ' + error.message);
+  } finally {
+    this.elements.loginText.classList.remove('hidden');
+    this.elements.loginSpinner.classList.add('hidden');
+  }
+}
 
       logout() {
         this.currentUser = null;
